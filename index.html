@@ -3,38 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RFX Femmora | Debug Mode</title>
+    <title>RFX Femmora | Visual & Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body { background-color: #020617; color: white; font-family: sans-serif; }
-      #error-log { color: #ef4444; background: #2a0a0a; padding: 20px; margin: 20px; border-radius: 8px; border: 1px solid #ef4444; display: none; }
-    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+            }
+          }
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="root" class="p-10 text-center">
-      <h1 class="text-2xl font-bold animate-pulse text-cyan-400">MEMUAT WEBSITE...</h1>
-      <p class="text-slate-400 mt-2">Jika tulisan ini tidak hilang dalam 5 detik, baca kotak merah di bawah.</p>
-    </div>
-
-    <!-- Kotak Error (Akan muncul jika ada masalah) -->
-    <div id="error-log">
-      <h2 class="font-bold text-lg mb-2">⚠️ ERROR TERDETEKSI:</h2>
-      <pre id="error-msg" class="whitespace-pre-wrap text-sm font-mono"></pre>
-      <p class="mt-4 text-xs text-slate-400">Screenshot layar ini dan kirim ke AI untuk diperbaiki.</p>
-    </div>
-
-    <script>
-      // Script Detektif Error
-      window.onerror = function(msg, url, line, col, error) {
-        document.getElementById('error-log').style.display = 'block';
-        document.getElementById('root').style.display = 'none';
-        var errorText = "Pesan: " + msg + "\n";
-        errorText += "Lokasi: " + url.split('/').pop() + " (Baris: " + line + ")\n";
-        if (error) errorText += "Detail: " + error.toString();
-        document.getElementById('error-msg').textContent = errorText;
-        return false;
-      };
-    </script>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
