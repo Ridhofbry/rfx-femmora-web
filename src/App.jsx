@@ -5,9 +5,10 @@ import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, or
 import { 
   Palette, ShoppingCart, Star, Trash2, Plus, LayoutGrid, MessageCircle, 
   LogIn, LogOut, Image as ImageIcon, Lock, Edit, Home, Bot, Send, Sparkles, 
-  X, Loader2, Gamepad2, Video, Smartphone, ShieldCheck, Zap, Heart 
+  X, Loader2, Gamepad2, Video, Smartphone, ShieldCheck, Zap, Heart, User, SendHorizontal
 } from 'lucide-react';
-// --- KONFIGURASI FIREBASE KAMU (SUDAH DIISI) ---
+
+// --- CONFIG ---
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -17,14 +18,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// --- API KEY GEMINI (SUDAH DIISI) ---
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY; 
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = "rfx-femmora-production"; 
 
+// --- HELPERS ---
 const generateGeminiContent = async (prompt) => {
   try {
     const response = await fetch(
@@ -43,6 +44,7 @@ const generateGeminiContent = async (prompt) => {
   }
 };
 
+// --- STYLES ---
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Russo+One&display=swap');
@@ -67,6 +69,7 @@ const GlobalStyles = () => (
   `}</style>
 );
 
+// --- COMPONENTS ---
 const BrandLogo = ({ onClick }) => (
   <div className="relative group cursor-pointer select-none transform transition-transform duration-300 hover:scale-105 flex items-center gap-2" onClick={onClick}>
     <div className="bg-gradient-to-br from-cyan-500 to-pink-500 p-1.5 rounded-lg shadow-lg">
@@ -161,37 +164,96 @@ const AIChatBot = () => {
   );
 };
 
+// --- MODALS & FORMS ---
+
+const DetailModal = ({ item, onClose, isRfx }) => {
+  const handleOrder = () => { const phone = '6288989100539'; const text = encodeURIComponent(`Halo Admin RFX Femmora, saya ingin order: *${item.title}* seharga IDR ${item.price}. Mohon infonya.`); window.open(`https://wa.me/${phone}?text=${text}`, '_blank'); };
+  
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-pop">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col md:flex-row shadow-2xl relative">
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-2 bg-slate-950/50 rounded-full text-white hover:bg-red-500 transition-colors"><X className="w-5 h-5" /></button>
+        <div className="md:w-1/2 aspect-square md:aspect-auto bg-slate-950">
+          <img src={item.imageUrl} className="w-full h-full object-cover" alt={item.title} onError={(e) => e.target.src = 'https://placehold.co/400x500/1e293b/white?text=No+Image'} />
+        </div>
+        <div className="md:w-1/2 p-8 flex flex-col">
+          <div className={`text-sm font-bold mb-2 uppercase tracking-widest ${isRfx ? 'text-cyan-400' : 'text-pink-400'}`}>{isRfx ? 'Creative Service' : 'Premium Item'}</div>
+          <h2 className="text-3xl font-black text-white mb-2 leading-tight font-rfx">{item.title}</h2>
+          <div className="text-2xl font-bold text-white mb-6">IDR {item.price}</div>
+          <div className="flex-1 overflow-y-auto mb-6 pr-2">
+            <p className="text-slate-300 leading-relaxed whitespace-pre-line">{item.desc}</p>
+          </div>
+          <button onClick={handleOrder} className={`w-full py-4 rounded-xl font-bold text-base transition-all duration-300 flex items-center justify-center gap-2 group hover:scale-[1.02] shadow-xl ${isRfx ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20' : 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-pink-500/20'}`}>
+            <MessageCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Order Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UserReviewForm = ({ onSubmit, onClose }) => {
+  const [name, setName] = useState('');
+  const [desc, setDesc] = useState('');
+  const [rating, setRating] = useState(5);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ title: name, desc, rating: parseInt(rating), type: 'user_review', imageUrl: `https://ui-avatars.com/api/?name=${name}&background=random` });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 font-body animate-in fade-in duration-200">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center border-b border-slate-800 pb-4">
+          <Edit className="w-6 h-6 mr-3 text-yellow-400" /> Tulis Ulasan Kamu
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase">Nama Kamu</label><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" value={name} onChange={e => setName(e.target.value)} /></div>
+          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase">Rating</label><select className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" value={rating} onChange={e => setRating(e.target.value)}>{[5,4,3,2,1].map(r => <option key={r} value={r}>{r} Bintang</option>)}</select></div>
+          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase">Komentar</label><textarea required rows="3" className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-yellow-500 outline-none" value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ceritakan pengalamanmu..." /></div>
+          <div className="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl bg-slate-800 text-gray-300">Batal</button><button type="submit" className="flex-1 py-3 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white font-bold">Kirim Ulasan</button></div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const AdminForm = ({ type, onSubmit, onClose }) => {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [desc, setDesc] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
   const handleGenerateDesc = async () => {
     if (!title) { alert("Isi nama produk dulu ya!"); return; }
     setIsGenerating(true);
     let contextType = '';
     if (type === 'rfx') contextType = 'Jasa Editing Video / Animasi / Website Statis';
     else if (type === 'femmora') contextType = 'Aplikasi Premium (Spotify/Netflix) / Robux Roblox';
-    else contextType = 'Testimoni Customer';
+    
     const prompt = `Buatlah deskripsi marketing yang singkat, menarik, gaul, dan persuasif (bahasa Indonesia) untuk: Nama: ${title}. Harga: ${price || 'Terjangkau'}. Kategori: ${contextType}. Konteks: Dijual di RFX Femmora. Gunakan emoji yang relevan. Jangan terlalu panjang, maksimal 3 kalimat.`;
     const result = await generateGeminiContent(prompt);
     setDesc(result); setIsGenerating(false);
   };
+
   const handleSubmit = (e) => { e.preventDefault(); onSubmit({ title, price, desc, imageUrl, type }); onClose(); };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 font-body animate-in fade-in duration-200">
       <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl">
-        <h3 className="text-xl font-bold text-white mb-6 flex items-center border-b border-slate-800 pb-4"><Plus className="w-6 h-6 mr-3 text-cyan-400 p-1 bg-cyan-400/10 rounded-lg" /> Tambah {type === 'testimoni' ? 'Testimoni' : 'Konten Baru'}</h3>
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center border-b border-slate-800 pb-4"><Plus className="w-6 h-6 mr-3 text-cyan-400 p-1 bg-cyan-400/10 rounded-lg" /> Tambah {type === 'gallery' ? 'Galeri Bukti' : 'Konten Baru'}</h3>
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Nama / Judul</label><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all placeholder:text-slate-600" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'testimoni' ? "Nama Client" : "Contoh: Jasa Web Portofolio / Robux 100"} /></div>
-          {type !== 'testimoni' && (<div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Harga (IDR)</label><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all placeholder:text-slate-600" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Contoh: 50.000" /></div>)}
+          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">{type === 'gallery' ? 'Judul Bukti' : 'Nama Produk'}</label><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Contoh: Bukti Transfer / Akun Netflix" /></div>
+          {type !== 'gallery' && (<div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Harga (IDR)</label><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" value={price} onChange={(e) => setPrice(e.target.value)} /></div>)}
           <div>
-            <div className="flex justify-between items-center mb-2"><label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">{type === 'testimoni' ? 'Isi Review' : 'Deskripsi'}</label><button type="button" onClick={handleGenerateDesc} disabled={isGenerating} className="text-[10px] bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-1 rounded-md text-white font-bold flex items-center gap-1 hover:opacity-80 transition-opacity">{isGenerating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} {isGenerating ? 'Generating...' : 'Buat Deskripsi Otomatis'}</button></div>
-            <textarea required rows="3" className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all placeholder:text-slate-600 resize-none" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Jelaskan detailnya... atau klik tombol AI di atas!" />
+            <div className="flex justify-between items-center mb-2"><label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">{type === 'gallery' ? 'Keterangan Singkat' : 'Deskripsi'}</label>{type !== 'gallery' && <button type="button" onClick={handleGenerateDesc} disabled={isGenerating} className="text-[10px] bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-1 rounded-md text-white font-bold flex items-center gap-1">{isGenerating ? '...' : '✨ AI'}</button>}</div>
+            <textarea required rows="3" className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-cyan-500 outline-none resize-none" value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
-          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Link Gambar</label><div className="flex gap-2"><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all placeholder:text-slate-600" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." /><div className="bg-slate-800 p-3 rounded-xl flex items-center justify-center shrink-0"><ImageIcon className="w-5 h-5 text-gray-400" /></div></div></div>
-          <div className="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl bg-slate-800 text-gray-300 hover:bg-slate-700 font-semibold transition-colors">Batal</button><button type="submit" className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-pink-600 text-white font-bold hover:shadow-lg hover:shadow-pink-500/25 transition-all">Upload</button></div>
+          <div><label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Link Gambar</label><div className="flex gap-2"><input required className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:border-cyan-500 outline-none" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} /><div className="bg-slate-800 p-3 rounded-xl flex items-center justify-center shrink-0"><ImageIcon className="w-5 h-5 text-gray-400" /></div></div></div>
+          <div className="flex gap-3 mt-8 pt-4 border-t border-slate-800"><button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl bg-slate-800 text-gray-300">Batal</button><button type="submit" className="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-pink-600 text-white font-bold">Upload</button></div>
         </form>
       </div>
     </div>
@@ -238,12 +300,11 @@ const EditHomeModal = ({ currentData, onSubmit, onClose }) => {
   );
 };
 
-const ItemCard = ({ item, onDelete, isAdmin, type }) => {
+const ItemCard = ({ item, onClick, onDelete, isAdmin, type }) => {
   const isRfx = type === 'rfx'; const borderColor = isRfx ? 'group-hover:border-cyan-500/50' : 'group-hover:border-pink-500/50'; const shadowColor = isRfx ? 'group-hover:shadow-cyan-500/20' : 'group-hover:shadow-pink-500/20';
-  const handleOrder = () => { const phone = '6288989100539'; const text = encodeURIComponent(`Halo Admin RFX Femmora, saya ingin order: *${item.title}* seharga IDR ${item.price}. Mohon infonya.`); window.open(`https://wa.me/${phone}?text=${text}`, '_blank'); };
   return (
-    <div className={`font-body group relative bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 transition-all duration-500 hover:-translate-y-2 ${borderColor} hover:shadow-2xl ${shadowColor} flex flex-col h-full`}>
-      {isAdmin && <button onClick={() => onDelete(item.id)} className="absolute top-3 right-3 z-20 bg-red-500/90 hover:bg-red-600 p-2.5 rounded-xl text-white backdrop-blur-sm shadow-lg transform scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300"><Trash2 className="w-4 h-4" /></button>}
+    <div onClick={() => onClick(item)} className={`font-body group relative bg-slate-900 rounded-3xl overflow-hidden border border-slate-800 transition-all duration-500 hover:-translate-y-2 ${borderColor} hover:shadow-2xl ${shadowColor} flex flex-col h-full cursor-pointer`}>
+      {isAdmin && <button onClick={(e) => { e.stopPropagation(); onDelete(item.id); }} className="absolute top-3 right-3 z-20 bg-red-500/90 hover:bg-red-600 p-2.5 rounded-xl text-white backdrop-blur-sm shadow-lg transform scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300"><Trash2 className="w-4 h-4" /></button>}
       <div className="aspect-[4/5] relative overflow-hidden bg-slate-950">
         <div className={`absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80 z-10`} />
         <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onError={(e) => { e.target.src = 'https://placehold.co/400x500/1e293b/white?text=No+Image'; }} />
@@ -253,9 +314,9 @@ const ItemCard = ({ item, onDelete, isAdmin, type }) => {
         <div className="bg-slate-800/90 backdrop-blur-md p-5 rounded-2xl border border-white/5 shadow-xl flex-1 flex flex-col hover:bg-slate-800 transition-colors">
           <h3 className={`text-lg font-bold text-white mb-2 leading-tight ${isRfx ? 'font-rfx tracking-wide' : 'font-femmora tracking-normal'}`}>{item.title}</h3>
           <p className="text-slate-400 text-sm line-clamp-3 mb-6 flex-1 font-light leading-relaxed">{item.desc}</p>
-          <button onClick={handleOrder} className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 group/btn relative overflow-hidden ${isRfx ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white'}`}>
-            <span className="relative z-10 flex items-center gap-2"><MessageCircle className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" /> Order via WhatsApp</span>
-          </button>
+          <div className={`w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 group/btn relative overflow-hidden ${isRfx ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white' : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white'}`}>
+            <span className="relative z-10 flex items-center gap-2">Detail & Order</span>
+          </div>
         </div>
       </div>
     </div>
@@ -267,12 +328,23 @@ const TestiCard = ({ item, onDelete, isAdmin }) => (
      {isAdmin && <button onClick={() => onDelete(item.id)} className="absolute top-4 right-4 text-slate-600 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>}
     <div className="flex items-center gap-4 mb-6">
       <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-pink-500 p-[2px] shadow-lg shrink-0"><img src={item.imageUrl} className="w-full h-full rounded-full object-cover bg-slate-900 border-2 border-slate-900" alt="user" onError={(e) => e.target.src = 'https://ui-avatars.com/api/?name=User&background=random'} /></div>
-      <div><h4 className="text-white font-bold text-lg font-femmora tracking-wide">{item.title}</h4><div className="flex text-yellow-400 mt-1 gap-1">{[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 fill-current" />)}</div></div>
+      <div><h4 className="text-white font-bold text-lg font-femmora tracking-wide">{item.title}</h4><div className="flex text-yellow-400 mt-1 gap-1">{Array.from({length: item.rating || 5}).map((_, i) => <Star key={i} className="w-3.5 h-3.5 fill-current" />)}</div></div>
     </div>
     <div className="relative"><span className="absolute -top-4 -left-2 text-6xl text-slate-800 font-serif opacity-50 z-0">"</span><p className="text-slate-300 text-base leading-relaxed relative z-10 pl-2 italic font-light">{item.desc}</p></div>
   </div>
 );
 
+const GalleryCard = ({ item, onDelete, isAdmin }) => (
+  <div className="relative group rounded-2xl overflow-hidden cursor-pointer">
+    {isAdmin && <button onClick={() => onDelete(item.id)} className="absolute top-2 right-2 z-20 bg-red-500/90 p-2 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>}
+    <img src={item.imageUrl} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500" alt={item.title} />
+    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+      <p className="text-white text-sm font-bold">{item.title}</p>
+    </div>
+  </div>
+);
+
+// --- MAIN APP ---
 export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
@@ -280,9 +352,13 @@ export default function App() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showEditHomeModal, setShowEditHomeModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showUserReviewForm, setShowUserReviewForm] = useState(false);
+  
   const [rfxItems, setRfxItems] = useState([]);
   const [femmoraItems, setFemmoraItems] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
+  const [testimonials, setTestimonials] = useState([]); // Public Reviews
+  const [galleryItems, setGalleryItems] = useState([]); // Admin Gallery
   const [homeContent, setHomeContent] = useState({
     story: "Awalnya kami berjalan sendiri-sendiri. RFX Visual fokus di Editing Video, Animasi & Website. Di sisi lain, Femmora Store menjadi andalan untuk kebutuhan Aplikasi Premium & Robux.",
     whyJoin: "Kami sadar, dunia kreatif dan hiburan itu saling melengkapi. Karena itulah RFX Femmora lahir. Satu tempat untuk mempercantik branding kamu, sekaligus menikmati hiburan premium tanpa ribet.",
@@ -302,15 +378,42 @@ export default function App() {
     const unsubRfx = onSnapshot(qRfx, (snap) => setRfxItems(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
     const qFem = query(collection(db, 'artifacts', appId, 'public', 'data', 'femmora_products'), orderBy('createdAt', 'desc'));
     const unsubFem = onSnapshot(qFem, (snap) => setFemmoraItems(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-    const qTesti = query(collection(db, 'artifacts', appId, 'public', 'data', 'testimonials'), orderBy('createdAt', 'desc'));
+    
+    // User Reviews
+    const qTesti = query(collection(db, 'artifacts', appId, 'public', 'data', 'public_reviews'), orderBy('createdAt', 'desc'));
     const unsubTesti = onSnapshot(qTesti, (snap) => setTestimonials(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    
+    // Admin Gallery
+    const qGallery = query(collection(db, 'artifacts', appId, 'public', 'data', 'admin_gallery'), orderBy('createdAt', 'desc'));
+    const unsubGallery = onSnapshot(qGallery, (snap) => setGalleryItems(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+
     const homeDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'home_content', 'settings');
     const unsubHome = onSnapshot(homeDocRef, (doc) => { if (doc.exists()) { setHomeContent(prev => ({...prev, ...doc.data()})); } });
-    return () => { unsubRfx(); unsubFem(); unsubTesti(); unsubHome(); };
+    return () => { unsubRfx(); unsubFem(); unsubTesti(); unsubGallery(); unsubHome(); };
   }, [user]);
 
-  const handleAddItem = async (data) => { if (!user) return; let collectionName = data.type === 'rfx' ? 'rfx_services' : data.type === 'femmora' ? 'femmora_products' : 'testimonials'; try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', collectionName), { ...data, createdAt: serverTimestamp() }); } catch (e) { console.error(e); } };
-  const handleDeleteItem = async (id, type) => { if (!confirm("Hapus item ini?")) return; let collectionName = type === 'rfx' ? 'rfx_services' : type === 'femmora' ? 'femmora_products' : 'testimonials'; try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, id)); } catch (e) { console.error(e); } };
+  const handleAddItem = async (data) => { 
+    if (!user) return; 
+    let collectionName = '';
+    if (data.type === 'rfx') collectionName = 'rfx_services';
+    else if (data.type === 'femmora') collectionName = 'femmora_products';
+    else if (data.type === 'gallery') collectionName = 'admin_gallery'; // Admin Gallery
+    else if (data.type === 'user_review') collectionName = 'public_reviews'; // Public Review
+
+    try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', collectionName), { ...data, createdAt: serverTimestamp() }); } catch (e) { console.error(e); }
+  };
+
+  const handleDeleteItem = async (id, type) => { 
+    if (!confirm("Hapus item ini?")) return; 
+    let collectionName = '';
+    if (type === 'rfx') collectionName = 'rfx_services';
+    else if (type === 'femmora') collectionName = 'femmora_products';
+    else if (type === 'gallery') collectionName = 'admin_gallery';
+    else collectionName = 'public_reviews'; // Assuming delete is for public reviews too
+
+    try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, id)); } catch (e) { console.error(e); } 
+  };
+
   const handleUpdateHome = async (data) => { if (!user) return; try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'home_content', 'settings'), data, { merge: true }); } catch(e) { console.error(e); } };
   const handleAdminToggle = () => { if (isAdminMode) { setIsAdminMode(false); } else { setShowLoginModal(true); } };
 
@@ -325,7 +428,7 @@ export default function App() {
               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070')] bg-cover bg-center opacity-20 mix-blend-overlay filter blur-sm scale-110" />
               <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-950/80 to-slate-900/50" />
               <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center">
-                <div className="inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-xl transform hover:scale-105 transition-transform duration-300"><span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span></span><span className="text-xs font-bold text-cyan-200 tracking-widest uppercase font-rfx">Official Hub v2.0</span></div>
+                <div className="inline-flex items-center gap-3 mb-8 px-6 py-3 rounded-full bg-slate-900/80 border border-white/10 backdrop-blur-xl shadow-xl transform hover:scale-105 transition-transform duration-300"><span className="flex h-3 w-3 relative"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span></span><span className="text-xs font-bold text-cyan-200 tracking-widest uppercase font-rfx">Proudly Presenting</span></div>
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 tracking-tighter leading-[0.9] drop-shadow-2xl">
                   <span className="font-rfx block md:inline text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-cyan-700 filter drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">RFX</span>
                   <span className="hidden md:inline mx-4 text-slate-800 font-thin select-none">&</span>
@@ -364,7 +467,7 @@ export default function App() {
               <div><div className="flex items-center gap-4 mb-3"><div className="p-3 bg-cyan-500 rounded-2xl shadow-lg shadow-cyan-500/20 transform -rotate-6"><Palette className="text-white w-8 h-8" /></div><h2 className="text-5xl font-bold text-white font-rfx tracking-wide drop-shadow-lg">RFX Visual</h2></div><p className="text-slate-400 max-w-md text-lg ml-2">Video Editing, Motion Graphic & Web Statis.</p></div>
               {isAdminMode && <button onClick={() => setShowAddModal('rfx')} className="w-full md:w-auto px-8 py-4 bg-cyan-600 hover:bg-cyan-500 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20"><Plus className="w-5 h-5" /> Tambah Jasa</button>}
             </div>
-            {rfxItems.length === 0 ? (<div className="flex flex-col items-center justify-center py-32 bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-800"><Video className="w-20 h-20 text-slate-700 mb-6" /><p className="text-slate-500 font-medium text-lg">Belum ada layanan visual yang diupload.</p>{isAdminMode && <p className="text-cyan-500 text-sm mt-3 animate-pulse font-bold">Yuk, upload portofolio pertamamu!</p>}</div>) : (<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">{rfxItems.map((item) => (<ItemCard key={item.id} item={item} isAdmin={isAdminMode} type="rfx" onDelete={(id) => handleDeleteItem(id, 'rfx')} />))}</div>)}
+            {rfxItems.length === 0 ? (<div className="flex flex-col items-center justify-center py-32 bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-800"><Video className="w-20 h-20 text-slate-700 mb-6" /><p className="text-slate-500 font-medium text-lg">Belum ada layanan visual yang diupload.</p>{isAdminMode && <p className="text-cyan-500 text-sm mt-3 animate-pulse font-bold">Yuk, upload portofolio pertamamu!</p>}</div>) : (<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">{rfxItems.map((item) => (<ItemCard key={item.id} item={item} isAdmin={isAdminMode} type="rfx" onClick={setSelectedItem} onDelete={(id) => handleDeleteItem(id, 'rfx')} />))}</div>)}
           </div>
         )}
         {activeTab === 'femmora' && (
@@ -373,17 +476,36 @@ export default function App() {
               <div><div className="flex items-center gap-4 mb-3"><div className="p-3 bg-pink-500 rounded-2xl shadow-lg shadow-pink-500/20 transform rotate-6"><ShoppingCart className="text-white w-8 h-8" /></div><h2 className="text-5xl font-bold text-white font-femmora drop-shadow-lg">Femmora Store</h2></div><p className="text-slate-400 max-w-md text-lg ml-2">Premium Apps (Spotify/Netflix) & Robux Aman.</p></div>
               {isAdminMode && <button onClick={() => setShowAddModal('femmora')} className="w-full md:w-auto px-8 py-4 bg-pink-600 hover:bg-pink-500 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-pink-500/20"><Plus className="w-5 h-5" /> Tambah Produk</button>}
             </div>
-            {femmoraItems.length === 0 ? (<div className="flex flex-col items-center justify-center py-32 bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-800"><Smartphone className="w-20 h-20 text-slate-700 mb-6" /><p className="text-slate-500 font-medium text-lg">Belum ada produk premium yang diupload.</p>{isAdminMode && <p className="text-pink-500 text-sm mt-3 animate-pulse font-bold">Mulai jualan sekarang!</p>}</div>) : (<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">{femmoraItems.map((item) => (<ItemCard key={item.id} item={item} isAdmin={isAdminMode} type="femmora" onDelete={(id) => handleDeleteItem(id, 'femmora')} />))}</div>)}
+            {femmoraItems.length === 0 ? (<div className="flex flex-col items-center justify-center py-32 bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-800"><Smartphone className="w-20 h-20 text-slate-700 mb-6" /><p className="text-slate-500 font-medium text-lg">Belum ada produk premium yang diupload.</p>{isAdminMode && <p className="text-pink-500 text-sm mt-3 animate-pulse font-bold">Mulai jualan sekarang!</p>}</div>) : (<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">{femmoraItems.map((item) => (<ItemCard key={item.id} item={item} isAdmin={isAdminMode} type="femmora" onClick={setSelectedItem} onDelete={(id) => handleDeleteItem(id, 'femmora')} />))}</div>)}
           </div>
         )}
         {activeTab === 'testimoni' && (
           <div className="animate-pop">
             <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-slate-800 pb-8 gap-6">
-              <div><div className="flex items-center gap-4 mb-3"><div className="p-3 bg-yellow-500 rounded-2xl shadow-lg shadow-yellow-500/20 transform -rotate-3"><Star className="text-white w-8 h-8" /></div><h2 className="text-5xl font-bold text-white font-rfx drop-shadow-lg">Happy Clients</h2></div><p className="text-slate-400 text-lg ml-2">Bukti nyata kepuasan pelanggan.</p></div>
-              {isAdminMode && <button onClick={() => setShowAddModal('testimoni')} className="w-full md:w-auto px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all"><Plus className="w-5 h-5" /> Tambah Review</button>}
+              <div><div className="flex items-center gap-4 mb-3"><div className="p-3 bg-yellow-500 rounded-2xl shadow-lg shadow-yellow-500/20 transform -rotate-3"><Star className="text-white w-8 h-8" /></div><h2 className="text-5xl font-bold text-white font-rfx drop-shadow-lg">Happy Clients</h2></div><p className="text-slate-400 text-lg ml-2">Apa kata mereka tentang layanan kami?</p></div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowUserReviewForm(true)} className="w-full md:w-auto px-6 py-3 bg-yellow-600 hover:bg-yellow-500 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-yellow-500/20"><Edit className="w-4 h-4" /> Tulis Ulasan</button>
+                {isAdminMode && <button onClick={() => setShowAddModal('gallery')} className="w-full md:w-auto px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all"><Plus className="w-4 h-4" /> Add Galeri</button>}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {testimonials.length === 0 ? (<div className="col-span-full flex flex-col items-center justify-center py-32 bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-800"><MessageCircle className="w-20 h-20 text-slate-700 mb-6" /><p className="text-slate-500 font-medium text-lg">Belum ada testimoni.</p></div>) : (testimonials.map((item) => (<TestiCard key={item.id} item={item} isAdmin={isAdminMode} onDelete={(id) => handleDeleteItem(id, 'testimoni')} />)))}
+            
+            {/* User Reviews Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+              {testimonials.length === 0 ? (<div className="col-span-full flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-800"><MessageCircle className="w-16 h-16 text-slate-700 mb-4" /><p className="text-slate-500 font-medium">Belum ada ulasan dari user.</p></div>) : (testimonials.map((item) => (<TestiCard key={item.id} item={item} isAdmin={isAdminMode} onDelete={(id) => handleDeleteItem(id, 'user_review')} />)))}
+            </div>
+
+            {/* Gallery Section */}
+            <div className="border-t border-slate-800 pt-12">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="bg-slate-800 p-2 rounded-lg"><ImageIcon className="w-6 h-6 text-slate-400" /></div>
+                <h3 className="text-2xl font-bold text-white font-rfx">Galeri Real Testimoni & Bukti</h3>
+              </div>
+              <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+                {galleryItems.map((item) => (
+                  <GalleryCard key={item.id} item={item} isAdmin={isAdminMode} onDelete={(id) => handleDeleteItem(id, 'gallery')} />
+                ))}
+              </div>
+              {galleryItems.length === 0 && <p className="text-slate-500 italic">Belum ada foto galeri.</p>}
             </div>
           </div>
         )}
@@ -397,6 +519,8 @@ export default function App() {
           <p className="text-slate-800 text-xs mt-16 font-semibold">© 2026 RFX Femmora Collaboration. All rights reserved.</p>
         </div>
       </footer>
+      {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} isRfx={activeTab === 'rfx'} />}
+      {showUserReviewForm && <UserReviewForm onSubmit={handleAddItem} onClose={() => setShowUserReviewForm(false)} />}
       {showAddModal && <AdminForm type={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAddItem} />}
       {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onSuccess={() => setIsAdminMode(true)} />}
       {showEditHomeModal && <EditHomeModal currentData={homeContent} onClose={() => setShowEditHomeModal(false)} onSubmit={handleUpdateHome} />}
