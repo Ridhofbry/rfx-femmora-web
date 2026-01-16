@@ -2,8 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, setDoc } from 'firebase/firestore';
-import { Palette, ShoppingCart, Star, Trash2, Plus, LayoutGrid, MessageCircle, LogIn, LogOut, Image as ImageIcon, Lock, Edit, Home, Bot, Send, Sparkles, X, Loader2, Gamepad2, Video, Smartphone } from 'lucide-react';
-
+import { 
+  Palette, ShoppingCart, Star, Trash2, Plus, LayoutGrid, MessageCircle, 
+  LogIn, LogOut, Image as ImageIcon, Lock, Edit, Home, Bot, Send, Sparkles, 
+  X, Loader2, Gamepad2, Video, Smartphone, ShieldCheck, Zap, Heart 
+} from 'lucide-react';
 // --- KONFIGURASI FIREBASE KAMU (SUDAH DIISI) ---
 const firebaseConfig = {
   apiKey: "AIzaSyBt2lZIbFHsiQB9TMsR3kxTBuXUVzTrLuA",
