@@ -36,11 +36,16 @@ const generateGeminiContent = async (prompt) => {
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       }
     );
+    // MENANGANI LIMIT KUOTA (ERROR 429)
+    if (response.status === 429) {
+      return "Waduh, Rexa lagi pusing nih kebanyakan yang nanya 😵. Kuota otakku habis hari ini. Coba tanya lagi besok atau hubungi Admin manusia ya!";
+    }
+
     const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, AI sedang error.";
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, Rexa lagi bingung mau jawab apa.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Gagal menghubungi AI.";
+    return "Gagal menghubungi Rexa. Cek koneksi kamu ya.";
   }
 };
 
