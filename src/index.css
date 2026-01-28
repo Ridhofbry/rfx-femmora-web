@@ -2,8 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
-  background-color: #020617; /* slate-950 */
-  color: white;
+  /* Menggunakan warna luxury-black yang kita definisikan di config */
+  background-color: #050505; 
+  color: #e2e8f0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden; /* Mencegah scroll horizontal */
+}
+
+/* --- CUSTOM SCROLLBAR (Minimalis & Elegan) --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* --- SELECTION (Warna saat teks di-blok) --- */
+::selection {
+  background: rgba(6, 182, 212, 0.2); /* Cyan transparan */
+  color: #fff;
+}
+
+/* --- UTILITIES MEWAH --- */
+/* Efek Kaca (Glassmorphism) */
+.glass-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+}
+
+/* Text Gradient Helper */
+.text-gradient-rfx {
+  background: linear-gradient(to bottom, #67e8f9, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-fem {
+  background: linear-gradient(to bottom, #f9a8d4, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(to bottom, #fde68a, #d4af37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
