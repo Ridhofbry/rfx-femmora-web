@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  LayoutGrid, Plus, Trash2, X, Zap, Activity, 
-  ScanLine, LogOut, Image as ImageIcon 
+  Plus, X, Zap, Activity, ScanLine, LogOut, Image as ImageIcon 
 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, APP_ID, generateGeminiContent } from '../config/firebase';
 
 // ==========================================
-// 1. KOMPONEN KECIL (DITARUH DI ATAS)
+// 1. KOMPONEN KECIL (DITARUH DI LUAR)
 // ==========================================
 
 const OnyxCard = ({ title, count, color, icon: Icon, onClick }) => (
@@ -33,7 +32,7 @@ const OnyxInput = ({ label, ...props }) => (
 );
 
 // ==========================================
-// 2. FORMULIR INPUT (DITARUH DI ATAS JUGA)
+// 2. FORMULIR INPUT (SAFE MODE)
 // ==========================================
 
 const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
@@ -49,7 +48,6 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
     const prompt = `Buat deskripsi marketing singkat, gaul, emoji on, untuk produk: ${form.title}. Konteks: RFX Femmora.`;
     
     try {
-        // Efek loading manual kalau mau (opsional)
         const res = await generateGeminiContent(prompt);
         setForm(prev => ({...prev, desc: res}));
     } catch (error) {
@@ -58,9 +56,11 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-[110] flex flex-col font-body animate-in slide-in-from-bottom-10">
+    // HAPUS CLASS 'animate-in' YANG BERPOTENSI BUG
+    <div className="fixed inset-0 bg-black z-[200] flex flex-col font-body h-full w-full">
+      
       {/* Header Form */}
-      <div className="p-6 pt-12 flex items-center gap-4 border-b border-[#222] bg-black">
+      <div className="p-6 pt-12 flex items-center gap-4 border-b border-[#222] bg-black shrink-0">
         <button onClick={onBack} className="p-2 bg-[#111] rounded-lg text-white hover:bg-[#222] border border-[#333]">
            <X size={20}/>
         </button>
@@ -124,7 +124,7 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
       </div>
 
       {/* Footer / Tombol Submit */}
-      <div className="p-6 bg-black border-t border-[#222] absolute bottom-0 left-0 right-0">
+      <div className="p-6 bg-black border-t border-[#222] absolute bottom-0 left-0 right-0 z-10">
         <button 
           disabled={loading} 
           onClick={() => onSubmit({ ...form, type })} 
@@ -138,7 +138,7 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
 };
 
 // ==========================================
-// 3. KOMPONEN UTAMA (PALING BAWAH)
+// 3. KOMPONEN UTAMA
 // ==========================================
 
 const CommanderApp = ({ onClose, rfxItems, femmoraItems, galleryItems }) => {
@@ -169,7 +169,7 @@ const CommanderApp = ({ onClose, rfxItems, femmoraItems, galleryItems }) => {
   // --- RENDER DASHBOARD ---
   if (view === 'dashboard') {
     return (
-      <div className="fixed inset-0 bg-black z-[100] overflow-y-auto pb-20 font-body animate-in fade-in duration-300">
+      <div className="fixed inset-0 bg-black z-[100] overflow-y-auto pb-20 font-body h-full w-full">
         {/* Header ala Sci-Fi */}
         <div className="p-6 pt-12 flex justify-between items-center border-b border-[#222] bg-black/90 backdrop-blur-xl sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -198,7 +198,7 @@ const CommanderApp = ({ onClose, rfxItems, femmoraItems, galleryItems }) => {
         </div>
 
         {/* Quick Action Button */}
-        <div className="fixed bottom-8 left-0 right-0 flex justify-center px-6">
+        <div className="fixed bottom-8 left-0 right-0 flex justify-center px-6 z-20">
            <button onClick={() => setView('add_rfx')} className="w-full bg-white text-black font-black py-5 rounded-2xl tracking-[0.2em] uppercase active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
              <Plus size={18} /> New Deploy
            </button>
@@ -208,7 +208,6 @@ const CommanderApp = ({ onClose, rfxItems, femmoraItems, galleryItems }) => {
   }
 
   // --- RENDER FORM INPUT ---
-  // Karena OnyxForm sudah didefinisikan di ATAS, ini aman sekarang.
   return <OnyxForm view={view} onBack={() => setView('dashboard')} onSubmit={handleAdd} loading={loading} />;
 };
 
