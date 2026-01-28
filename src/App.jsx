@@ -11,7 +11,7 @@ import AIChatBot from './components/AIChatBot';
 import ItemCard from './components/ItemCard';
 import TestiCard from './components/TestiCard';
 import GalleryCard from './components/GalleryCard';
-import CommanderApp from './components/CommanderApp'; // Pastikan ini ada
+import CommanderApp from './components/CommanderApp';
 
 // Import Modals
 import DetailModal from './modals/DetailModal';
@@ -24,7 +24,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isCommanderMode, setIsCommanderMode] = useState(false); // State untuk Mode HP
+  const [isCommanderMode, setIsCommanderMode] = useState(false);
   
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -87,12 +87,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-luxury-black text-slate-200 font-body selection:bg-rfx-primary/30 pb-32 md:pb-0 overflow-x-hidden">
       
-    {/* --- COMMANDER APP (Overlay Hitam untuk HP) --- */}
+      {/* --- COMMANDER APP (Overlay Hitam untuk HP) --- */}
       {isCommanderMode && (
          <CommanderApp 
             onClose={() => {
               setIsCommanderMode(false); // Tutup tampilan HP
-              setIsAdminMode(false);     // MATIKAN AKSES ADMIN (Fix Bug Nyangkut)
+              setIsAdminMode(false);     // FIX BUG: MATIKAN JUGA AKSES ADMIN BIASA
             }} 
             rfxItems={rfxItems} 
             femmoraItems={femmoraItems} 
@@ -100,7 +100,6 @@ export default function App() {
          />
       )}
 
-      {/* Navbar */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
@@ -108,7 +107,6 @@ export default function App() {
         {/* --- HERO SECTION --- */}
         {activeTab === 'home' && (
           <div className="space-y-32 animate-pop pt-10">
-            {/* Main Title Area */}
             <div className="text-center relative">
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-900/20 rounded-full blur-[120px] -z-10 animate-glow" />
                <h1 className="text-6xl md:text-9xl font-black text-white tracking-tighter mb-6 relative z-10">
@@ -125,7 +123,6 @@ export default function App() {
                </div>
             </div>
 
-            {/* Story Section */}
             <div className="grid md:grid-cols-2 gap-16 items-start relative border-t border-glass-border pt-20">
                <div className="space-y-8 relative group">
                  {isAdminMode && <button onClick={() => setShowEditHomeModal(true)} className="text-xs text-gold-accent border border-gold-accent/30 px-3 py-1 rounded hover:bg-gold-accent hover:text-black transition-colors flex items-center gap-2"><Edit className="w-3 h-3" /> EDIT CONTENT</button>}
@@ -150,7 +147,6 @@ export default function App() {
                </div>
             </div>
 
-            {/* Why Us */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-20 border-t border-glass-border">
                 {[{ icon: ShieldCheck, title: "SECURE", desc: "Transaksi 100% aman & legal." }, { icon: Zap, title: "FAST", desc: "Proses kilat tanpa drama." }, { icon: Heart, title: "HUMAN", desc: "Pelayanan ramah & personal." }].map((feat, idx) => (
                   <div key={idx} className="text-center p-8 hover:bg-white/5 transition-colors rounded-xl group">
@@ -231,15 +227,17 @@ export default function App() {
       </main>
 
       <AIChatBot />
+      
+      {/* Footer Menerima Fungsi Secret Trigger */}
       <Footer onSecretTrigger={() => !isAdminMode && setShowLoginModal(true)} />
 
-      {/* MODALS */}
+      {/* RENDER MODALS */}
       {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} isRfx={activeTab === 'rfx'} />}
       {showUserReviewForm && <UserReviewForm onSubmit={handleAddItem} onClose={() => setShowUserReviewForm(false)} />}
       {showAddModal && <AdminForm type={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAddItem} />}
       {showEditHomeModal && <EditHomeModal currentData={homeContent} onClose={() => setShowEditHomeModal(false)} onSubmit={handleUpdateHome} />}
       
-      {/* LOGIN MODAL (Diaktifkan lewat Secret Door di Footer) */}
+      {/* LOGIN MODAL */}
       {showLoginModal && (
         <LoginModal 
           onClose={() => setShowLoginModal(false)} 
