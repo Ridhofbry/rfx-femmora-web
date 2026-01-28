@@ -1,29 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LayoutGrid } from 'lucide-react';
 
-const Footer = () => {
+const Footer = ({ onSecretTrigger }) => {
+  const [clickCount, setClickCount] = useState(0);
+
+  // LOGIKA RAHASIA: Klik 5x reset dalam 2 detik
+  const handleSecretClick = () => {
+    setClickCount(prev => prev + 1);
+    if (clickCount + 1 === 5) {
+      onSecretTrigger(); // Buka Login Modal
+      setClickCount(0);
+    }
+    // Reset counter kalau user berhenti klik
+    setTimeout(() => setClickCount(0), 2000);
+  };
+
   return (
-    <footer className="border-t border-slate-800 mt-32 bg-slate-950 py-16 font-body">
-      <div className="max-w-7xl mx-auto px-4 text-center">
-        <div className="flex justify-center items-center gap-3 mb-6">
-          <div className="bg-gradient-to-br from-cyan-500 to-pink-500 p-2 rounded-xl shadow-lg">
-            <LayoutGrid className="text-white w-5 h-5" />
-          </div>
-          <h2 className="text-2xl font-bold text-white tracking-wide">
-            RFX <span className="font-femmora text-pink-500">FEMMORA</span>
+    <footer className="border-t border-glass-border mt-32 bg-black py-20 font-body relative overflow-hidden">
+      {/* Decorative Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-1 bg-gradient-to-r from-transparent via-rfx-primary to-transparent opacity-20 blur-sm"></div>
+
+      <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
+        <div className="flex justify-center items-center gap-3 mb-8 opacity-80 hover:opacity-100 transition-opacity">
+          <LayoutGrid className="text-rfx-primary w-6 h-6" />
+          <h2 className="text-2xl font-rfx tracking-widest text-silver-text">
+            RFX <span className="text-fem-primary">FEMMORA</span>
           </h2>
         </div>
-        <p className="text-slate-500 text-sm mb-10 max-w-md mx-auto leading-relaxed">
-          Partner terbaikmu dalam mewujudkan visual impian dan menikmati hiburan premium tanpa rasa was-was.
+        
+        <p className="text-muted-text text-sm mb-12 max-w-lg mx-auto leading-loose font-light tracking-wide">
+          Kami memadukan estetika visual kelas atas dengan akses hiburan premium. 
+          Satu platform untuk kreator dan gamer sejati.
         </p>
-        <div className="flex justify-center gap-10 text-slate-400 text-sm font-bold tracking-wide">
-          <a href="#" className="hover:text-cyan-400 transition-colors transform hover:scale-110">Instagram</a>
-          <a href="#" className="hover:text-pink-400 transition-colors transform hover:scale-110">WhatsApp</a>
-          <a href="#" className="hover:text-indigo-400 transition-colors transform hover:scale-110">Discord</a>
+        
+        <div className="flex justify-center gap-12 text-silver-text text-xs font-bold tracking-[0.2em] uppercase mb-16">
+          <a href="#" className="hover:text-rfx-primary transition-colors hover:underline decoration-rfx-primary underline-offset-8">Instagram</a>
+          <a href="#" className="hover:text-fem-primary transition-colors hover:underline decoration-fem-primary underline-offset-8">WhatsApp</a>
+          <a href="#" className="hover:text-white transition-colors hover:underline decoration-white underline-offset-8">Discord</a>
         </div>
-        <p className="text-slate-800 text-xs mt-16 font-semibold">
-          © 2026 RFX Femmora Collaboration. All rights reserved.
-        </p>
+        
+        {/* AREA RAHASIA (Secret Door) */}
+        <div 
+          onClick={handleSecretClick} 
+          className="text-gray-700 text-[10px] font-mono tracking-widest cursor-default select-none hover:text-gray-600 transition-colors"
+        >
+          © 2026 RFX FEMMORA COLLABORATION.
+        </div>
       </div>
     </footer>
   );
