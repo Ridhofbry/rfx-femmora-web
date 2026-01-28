@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, X, Zap, Activity, ScanLine, LogOut, 
-  Image as ImageIcon, ChevronRight, Home, Save 
+  Image as ImageIcon, ChevronRight, Home, Save, Upload 
 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, APP_ID, generateGeminiContent } from '../config/firebase';
@@ -97,7 +97,7 @@ const OnyxHomeForm = ({ onBack }) => {
 };
 
 // ==========================================
-// 3. FORMULIR TAMBAH ITEM (EXISTING)
+// 3. FORMULIR TAMBAH ITEM (DENGAN UPLOAD FOTO)
 // ==========================================
 
 const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
@@ -116,6 +116,25 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
     }
   };
 
+  // --- LOGIC BASE64 CONVERTER ---
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Cek ukuran file (Batas aman Firestore ~700KB - 1MB)
+      if (file.size > 800000) { 
+         alert("⚠️ File terlalu besar! Maksimal 800KB agar database aman.");
+         return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // Hasil ini adalah string base64 panjang
+        setForm(prev => ({ ...prev, imageUrl: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black z-[200] flex flex-col font-body h-full w-full">
       <div className="p-6 pt-12 flex items-center gap-4 border-b border-[#222] bg-black shrink-0">
@@ -126,6 +145,7 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
       <div className="p-6 flex-1 overflow-y-auto pb-32">
         <OnyxInput label="CODENAME / TITLE" placeholder="ex: Logo Esport / Netflix 1 Bulan" value={form.title} onChange={e=>setForm({...form, title: e.target.value})} />
         {type !== 'gallery' && <OnyxInput label="PRICE (IDR)" placeholder="ex: 50.000" type="number" value={form.price} onChange={e=>setForm({...form, price: e.target.value})} />}
+        
         <div className="mb-4">
            <div className="flex justify-between mb-2">
              <label className="text-[10px] text-gray-500 tracking-[0.2em] uppercase">DESCRIPTION</label>
@@ -133,8 +153,50 @@ const OnyxForm = ({ view, onBack, onSubmit, loading }) => {
            </div>
            <OnyxTextArea value={form.desc} onChange={e=>setForm({...form, desc: e.target.value})} placeholder="Deskripsi produk..." />
         </div>
-        <OnyxInput label="IMAGE URL" placeholder="https://..." value={form.imageUrl} onChange={e=>setForm({...form, imageUrl: e.target.value})} />
-        {form.imageUrl && <div className="mb-6 rounded-xl overflow-hidden border border-[#333] h-40 bg-[#111]"><img src={form.imageUrl} className="w-full h-full object-cover opacity-70" onError={(e) => e.target.src='https://placehold.co/600x400/000000/FFF?text=Error+Loading'} alt="Preview" /></div>}
+
+        {/* --- BAGIAN UPLOAD FOTO --- */}
+        <div className="mb-6">
+            <label className="text-[10px] text-gray-500 tracking-[0.2em] uppercase mb-2 block">IMAGE SOURCE</label>
+            
+            <div className="flex flex-col gap-3">
+                {/* Input URL Manual (Backup) */}
+                <input 
+                    className="w-full bg-black border border-[#333] text-white p-4 rounded-xl focus:border-cyan-500 outline-none font-mono text-sm placeholder:text-gray-700"
+                    placeholder="https://... OR Upload Photo below" 
+                    value={form.imageUrl ? (form.imageUrl.startsWith('data:') ? 'Image Loaded (Base64)' : form.imageUrl) : ''}
+                    onChange={e=>setForm({...form, imageUrl: e.target.value})} 
+                />
+
+                {/* Tombol Upload Keren */}
+                <div className="relative">
+                    <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    />
+                    <div className="w-full bg-[#111] border border-dashed border-[#333] hover:border-cyan-500 text-gray-400 hover:text-cyan-400 p-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+                        <Upload size={18} />
+                        <span className="text-xs font-bold tracking-widest">UPLOAD FROM GALLERY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Preview Image */}
+        {form.imageUrl && (
+            <div className="mb-6 rounded-xl overflow-hidden border border-[#333] h-48 bg-[#111] relative">
+                <img 
+                    src={form.imageUrl} 
+                    className="w-full h-full object-cover opacity-80" 
+                    onError={(e) => e.target.src='https://placehold.co/600x400/000000/FFF?text=Error+Loading'} 
+                    alt="Preview" 
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-2 text-center text-[10px] text-gray-400 font-mono">
+                    PREVIEW MODE
+                </div>
+            </div>
+        )}
       </div>
 
       <div className="p-6 bg-black border-t border-[#222] absolute bottom-0 left-0 right-0 z-10">
@@ -183,7 +245,7 @@ const CommanderApp = ({ onClose, rfxItems, femmoraItems, galleryItems }) => {
           <OnyxCard title="Store Products" count={femmoraItems.length} color="text-pink-400" icon={ScanLine} onClick={() => setView('add_fem')} />
           <OnyxCard title="Evidence Gallery" count={galleryItems.length} color="text-yellow-400" icon={ImageIcon} onClick={() => setView('add_gallery')} />
           
-          {/* KARTU BARU: EDIT HOME LAYOUT */}
+          {/* KARTU EDIT HOME LAYOUT */}
           <OnyxCard title="Home Layout" count="EDIT" color="text-indigo-400" icon={Home} onClick={() => setView('edit_home')} />
         </div>
 
