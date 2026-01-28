@@ -236,7 +236,8 @@ export default function App() {
       {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} isRfx={activeTab === 'rfx'} />}
       {showUserReviewForm && <UserReviewForm onSubmit={handleAddItem} onClose={() => setShowUserReviewForm(false)} />}
       {showAddModal && <AdminForm type={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAddItem} />}
-      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onSuccess={() => setIsAdminMode(true)} />}
+      // Cari baris ini di paling bawah:
+      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onSuccess={() => { setIsAdminMode(true); setIsCommanderMode(true); }} />}
       {showEditHomeModal && <EditHomeModal currentData={homeContent} onClose={() => setShowEditHomeModal(false)} onSubmit={handleUpdateHome} />}
     </div>
   );
