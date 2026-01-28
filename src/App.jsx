@@ -1,4 +1,3 @@
-import CommanderApp from './components/CommanderApp';
 import React, { useState, useEffect } from 'react';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, setDoc } from 'firebase/firestore';
@@ -12,6 +11,7 @@ import AIChatBot from './components/AIChatBot';
 import ItemCard from './components/ItemCard';
 import TestiCard from './components/TestiCard';
 import GalleryCard from './components/GalleryCard';
+import CommanderApp from './components/CommanderApp'; // Pastikan ini ada
 
 // Import Modals
 import DetailModal from './modals/DetailModal';
@@ -23,8 +23,8 @@ import EditHomeModal from './modals/EditHomeModal';
 export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
-  // Ganti state isAdminMode lama jika perlu, atau tambahkan ini:
-  const [isCommanderMode, setIsCommanderMode] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isCommanderMode, setIsCommanderMode] = useState(false); // State untuk Mode HP
   
   // Modal States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -33,7 +33,7 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showUserReviewForm, setShowUserReviewForm] = useState(false);
   
-  // Data States (sama seperti sebelumnya)
+  // Data States
   const [rfxItems, setRfxItems] = useState([]);
   const [femmoraItems, setFemmoraItems] = useState([]);
   const [testimonials, setTestimonials] = useState([]); 
@@ -45,7 +45,7 @@ export default function App() {
     femmoraImage: "https://images.unsplash.com/photo-1605901309584-818e25960b8f?q=80&w=2000"
   });
 
-  // --- 1. AUTH & DATA FETCHING (COPY BAGIAN INI SAMA PERSIS DARI PHASE 1) ---
+  // --- 1. AUTH & DATA FETCHING ---
   useEffect(() => {
     signInAnonymously(auth).catch(console.error);
     return onAuthStateChanged(auth, (u) => setUser(u));
@@ -67,7 +67,7 @@ export default function App() {
     return () => { unsubRfx(); unsubFem(); unsubTesti(); unsubGallery(); unsubHome(); };
   }, [user]);
 
-  // --- 2. HANDLERS (SAMA PERSIS PHASE 1) ---
+  // --- 2. HANDLERS ---
   const handleAddItem = async (data) => {
     if (!user) return;
     const mapTypeToColl = { 'rfx': 'rfx_services', 'femmora': 'femmora_products', 'gallery': 'admin_gallery', 'user_review': 'public_reviews' };
@@ -83,53 +83,49 @@ export default function App() {
     try { await setDoc(doc(db, 'artifacts', APP_ID, 'public', 'data', 'home_content', 'settings'), data, { merge: true }); } catch(e) { console.error(e); }
   };
 
-  // --- 3. RENDER (Updated Layout for Luxury) ---
+  // --- 3. RENDER ---
   return (
     <div className="min-h-screen bg-luxury-black text-slate-200 font-body selection:bg-rfx-primary/30 pb-32 md:pb-0 overflow-x-hidden">
-      {showLoginModal && (
-  <LoginModal 
-    onClose={() => setShowLoginModal(false)} 
-    onSuccess={() => { 
-      setIsAdminMode(true); 
-      setIsCommanderMode(true); // <--- INI PENTING
-    }} 
-  />
-)}
-      {/* Navbar tidak lagi menerima prop Admin */}
+      
+      {/* --- COMMANDER APP (Overlay Hitam untuk HP) --- */}
+      {isCommanderMode && (
+         <CommanderApp 
+            onClose={() => setIsCommanderMode(false)} 
+            rfxItems={rfxItems} 
+            femmoraItems={femmoraItems} 
+            galleryItems={galleryItems} 
+         />
+      )}
+
+      {/* Navbar */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         
-        {/* --- HERO SECTION MEWAH --- */}
+        {/* --- HERO SECTION --- */}
         {activeTab === 'home' && (
           <div className="space-y-32 animate-pop pt-10">
             {/* Main Title Area */}
             <div className="text-center relative">
-               {/* Background Glow */}
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-900/20 rounded-full blur-[120px] -z-10 animate-glow" />
-               
                <h1 className="text-6xl md:text-9xl font-black text-white tracking-tighter mb-6 relative z-10">
                  <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 font-rfx">RFX</span>
                  <span className="mx-2 md:mx-6 text-2xl md:text-4xl text-rfx-primary font-serif italic align-middle">&</span>
                  <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 font-femmora">FEM</span>
                </h1>
-               
                <p className="max-w-xl mx-auto text-muted-text text-lg md:text-xl font-light tracking-wide leading-relaxed mb-12">
-                 Sinergi antara <span className="text-rfx-primary font-semibold">Seni Visual</span> dan <span className="text-fem-primary font-semibold">Hiburan Digital</span>. 
-                 Eksklusif untuk mereka yang menghargai kualitas.
+                 Sinergi antara <span className="text-rfx-primary font-semibold">Seni Visual</span> dan <span className="text-fem-primary font-semibold">Hiburan Digital</span>. Eksklusif untuk mereka yang menghargai kualitas.
                </p>
-               
                <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <button onClick={() => setActiveTab('rfx')} className="px-8 py-4 bg-white text-black font-bold text-sm tracking-widest uppercase hover:bg-gray-200 transition-colors rounded-sm">Visual Services</button>
                   <button onClick={() => setActiveTab('femmora')} className="px-8 py-4 border border-white/20 text-white font-bold text-sm tracking-widest uppercase hover:bg-white/5 transition-colors rounded-sm backdrop-blur-md">Femmora Store</button>
                </div>
             </div>
 
-            {/* Story Section (Editorial Layout) */}
+            {/* Story Section */}
             <div className="grid md:grid-cols-2 gap-16 items-start relative border-t border-glass-border pt-20">
                <div className="space-y-8 relative group">
                  {isAdminMode && <button onClick={() => setShowEditHomeModal(true)} className="text-xs text-gold-accent border border-gold-accent/30 px-3 py-1 rounded hover:bg-gold-accent hover:text-black transition-colors flex items-center gap-2"><Edit className="w-3 h-3" /> EDIT CONTENT</button>}
-                 
                  <div className="text-5xl md:text-6xl font-rfx text-white leading-none">
                     Define Your <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-rfx-primary to-purple-500">Identity.</span>
                  </div>
@@ -137,7 +133,6 @@ export default function App() {
                  <div className="w-16 h-1 bg-rfx-primary/50" />
                  <p className="text-muted-text leading-relaxed">{homeContent.whyJoin}</p>
                </div>
-               
                <div className="relative">
                   <div className="grid grid-cols-2 gap-4">
                       <div className="mt-12 space-y-4">
@@ -152,7 +147,7 @@ export default function App() {
                </div>
             </div>
 
-            {/* Why Us (Minimalist) */}
+            {/* Why Us */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-20 border-t border-glass-border">
                 {[{ icon: ShieldCheck, title: "SECURE", desc: "Transaksi 100% aman & legal." }, { icon: Zap, title: "FAST", desc: "Proses kilat tanpa drama." }, { icon: Heart, title: "HUMAN", desc: "Pelayanan ramah & personal." }].map((feat, idx) => (
                   <div key={idx} className="text-center p-8 hover:bg-white/5 transition-colors rounded-xl group">
@@ -165,7 +160,7 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB: RFX (Service List) */}
+        {/* TAB: RFX */}
         {activeTab === 'rfx' && (
           <div className="animate-pop pt-10">
             <div className="flex justify-between items-end mb-16">
@@ -183,7 +178,7 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB: FEMMORA (Product List) */}
+        {/* TAB: FEMMORA */}
         {activeTab === 'femmora' && (
           <div className="animate-pop pt-10">
             <div className="flex justify-between items-end mb-16">
@@ -201,10 +196,9 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB: TESTIMONI & GALLERY */}
+        {/* TAB: TESTIMONI */}
         {activeTab === 'testimoni' && (
           <div className="animate-pop pt-10">
-             {/* Header */}
              <div className="flex justify-between items-end mb-16">
                <div>
                   <h2 className="text-6xl font-rfx text-white mb-2">Stories.</h2>
@@ -216,12 +210,10 @@ export default function App() {
                </div>
             </div>
 
-            {/* Reviews */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
               {testimonials.length === 0 ? (<div className="col-span-full text-center text-gray-600 py-20 italic">No reviews yet.</div>) : (testimonials.map((item) => (<TestiCard key={item.id} item={item} isAdmin={isAdminMode} onDelete={(id) => handleDeleteItem(id, 'user_review')} />)))}
             </div>
             
-            {/* Gallery Grid (Masonry feel) */}
             <div className="border-t border-glass-border pt-16">
                <h3 className="text-2xl font-rfx text-white mb-8">Proof of Work</h3>
                <div className="columns-2 md:columns-4 gap-4 space-y-4">
@@ -236,17 +228,24 @@ export default function App() {
       </main>
 
       <AIChatBot />
-      
-      {/* Footer Menerima Fungsi Secret Trigger */}
       <Footer onSecretTrigger={() => !isAdminMode && setShowLoginModal(true)} />
 
-      {/* RENDER MODALS (No Change) */}
+      {/* MODALS */}
       {selectedItem && <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} isRfx={activeTab === 'rfx'} />}
       {showUserReviewForm && <UserReviewForm onSubmit={handleAddItem} onClose={() => setShowUserReviewForm(false)} />}
       {showAddModal && <AdminForm type={showAddModal} onClose={() => setShowAddModal(false)} onSubmit={handleAddItem} />}
-      // Cari baris ini di paling bawah:
-      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onSuccess={() => { setIsAdminMode(true); setIsCommanderMode(true); }} />}
       {showEditHomeModal && <EditHomeModal currentData={homeContent} onClose={() => setShowEditHomeModal(false)} onSubmit={handleUpdateHome} />}
+      
+      {/* LOGIN MODAL (Diaktifkan lewat Secret Door di Footer) */}
+      {showLoginModal && (
+        <LoginModal 
+          onClose={() => setShowLoginModal(false)} 
+          onSuccess={() => { 
+            setIsAdminMode(true); 
+            setIsCommanderMode(true); // Mengaktifkan Tampilan HP
+          }} 
+        />
+      )}
     </div>
   );
 }
