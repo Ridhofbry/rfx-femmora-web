@@ -1,21 +1,6 @@
-// Hapus import LayoutGrid jika tidak dipakai lagi, atau biarkan saja tidak apa-apa
 import React, { useState } from 'react';
-import { Home, Palette, ShoppingCart, Star, Menu, X } from 'lucide-react'; // LayoutGrid dihapus dari sini opsional
+import { Home, Palette, ShoppingCart, Star, Menu, X } from 'lucide-react';
 
-// ... kode lain ...
-
- // Logo Mewah (Text Only - Tanpa Kotak)
-  const BrandLogo = ({ onClick }) => (
-    <div className="relative group cursor-pointer select-none transform transition-transform duration-300 hover:scale-105 flex items-center gap-2" onClick={onClick}>
-      {/* BAGIAN KOTAK HILANG DISINI */}
-      <div className="flex items-baseline gap-1 shrink-0">
-        <span className="font-rfx text-xl md:text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-cyan-600 drop-shadow-sm filter drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">RFX</span>
-        <span className="font-femmora font-bold text-lg md:text-xl text-transparent bg-clip-text bg-gradient-to-b from-pink-300 to-pink-600 drop-shadow-sm filter drop-shadow-[0_0_8px_rgba(236,72,153,0.4)]">FEMMORA</span>
-      </div>
-    </div>
-  );
-
-// ... sisanya sama ...
 const Navbar = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -24,30 +9,31 @@ const Navbar = ({ activeTab, setActiveTab }) => {
     setIsMenuOpen(false);
   };
 
-  // Logo Mewah (Gradient Gold & Cyan)
+  // Logo Mewah (HANYA TEKS - Tanpa Kotak)
   const BrandLogo = ({ onClick }) => (
-    <div className="relative group cursor-pointer select-none flex items-center gap-3" onClick={onClick}>
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-800 to-black border border-glass-border flex items-center justify-center shadow-2xl group-hover:shadow-cyan-500/20 transition-all duration-500">
-         <LayoutGrid className="text-rfx-primary w-5 h-5 group-hover:scale-110 transition-transform" />
-      </div>
-      <div className="flex flex-col justify-center">
-        <span className="font-rfx text-lg tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-silver-text to-white leading-none mb-0.5">RFX</span>
-        <span className="font-femmora text-xs tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-fem-primary to-purple-400 leading-none">FEMMORA</span>
+    <div className="relative group cursor-pointer select-none transform transition-transform duration-300 hover:scale-105 flex items-center gap-2" onClick={onClick}>
+      <div className="flex items-baseline gap-1 shrink-0">
+        <span className="font-rfx text-xl md:text-2xl tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-cyan-300 to-cyan-600 drop-shadow-sm filter drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">RFX</span>
+        <span className="font-femmora font-bold text-lg md:text-xl text-transparent bg-clip-text bg-gradient-to-b from-pink-300 to-pink-600 drop-shadow-sm filter drop-shadow-[0_0_8px_rgba(236,72,153,0.4)]">FEMMORA</span>
       </div>
     </div>
   );
 
-  const NavButton = ({ tab, label }) => {
+  const NavButton = ({ tab, label, icon: Icon, colorClass }) => {
     const isActive = activeTab === tab;
     return (
       <button 
         onClick={() => handleNavClick(tab)} 
-        className={`relative px-6 py-2 text-sm font-semibold tracking-wide transition-all duration-300 ${isActive ? 'text-white' : 'text-muted-text hover:text-white'}`}
+        className={`relative px-6 py-2 text-sm font-semibold tracking-wide transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-400 hover:text-white'}`}
       >
         {isActive && (
-            <span className="absolute inset-0 bg-glass-border rounded-full blur-md opacity-50"></span>
+            <span className="absolute inset-0 bg-white/5 rounded-full blur-md opacity-50"></span>
         )}
-        <span className="relative z-10">{label}</span>
+        <span className="relative z-10 flex items-center gap-2">
+           {/* Icon Opsional di Desktop, dimunculkan biar manis */}
+           <Icon className={`w-4 h-4 ${isActive ? colorClass : 'text-slate-500'}`} />
+           {label}
+        </span>
         {isActive && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_10px_#22d3ee]"></span>}
       </button>
     );
@@ -60,12 +46,12 @@ const Navbar = ({ activeTab, setActiveTab }) => {
           
           <BrandLogo onClick={() => handleNavClick('home')} />
           
-          {/* Desktop Menu (Clean Text Only) */}
+          {/* Desktop Menu */}
           <div className="hidden lg:flex items-center gap-2 p-1">
-            <NavButton tab="home" label="Home" />
-            <NavButton tab="rfx" label="Visual" />
-            <NavButton tab="femmora" label="Store" />
-            <NavButton tab="testimoni" label="Stories" />
+            <NavButton tab="home" label="Home" icon={Home} colorClass="text-indigo-400" />
+            <NavButton tab="rfx" label="Visual" icon={Palette} colorClass="text-cyan-400" />
+            <NavButton tab="femmora" label="Store" icon={ShoppingCart} colorClass="text-pink-400" />
+            <NavButton tab="testimoni" label="Stories" icon={Star} colorClass="text-yellow-400" />
           </div>
 
           {/* Mobile Toggle */}
@@ -75,13 +61,13 @@ const Navbar = ({ activeTab, setActiveTab }) => {
         </div>
       </div>
 
-      {/* Mobile Menu (Glass Overlay) */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="lg:hidden absolute top-24 left-0 right-0 bg-luxury-black/95 backdrop-blur-xl border-b border-glass-border p-6 shadow-2xl animate-in slide-in-from-top-5 z-40 flex flex-col gap-4">
-             <button onClick={() => handleNavClick('home')} className="text-left text-silver-text hover:text-cyan-400 font-rfx text-xl py-2 border-b border-white/5">Home</button>
-             <button onClick={() => handleNavClick('rfx')} className="text-left text-silver-text hover:text-cyan-400 font-rfx text-xl py-2 border-b border-white/5">Visual Services</button>
-             <button onClick={() => handleNavClick('femmora')} className="text-left text-silver-text hover:text-pink-400 font-rfx text-xl py-2 border-b border-white/5">Premium Store</button>
-             <button onClick={() => handleNavClick('testimoni')} className="text-left text-silver-text hover:text-yellow-400 font-rfx text-xl py-2">Testimonials</button>
+             <button onClick={() => handleNavClick('home')} className="text-left text-silver-text hover:text-cyan-400 font-rfx text-xl py-2 border-b border-white/5 flex items-center gap-3"><Home className="w-5 h-5"/> Home</button>
+             <button onClick={() => handleNavClick('rfx')} className="text-left text-silver-text hover:text-cyan-400 font-rfx text-xl py-2 border-b border-white/5 flex items-center gap-3"><Palette className="w-5 h-5"/> Visual Services</button>
+             <button onClick={() => handleNavClick('femmora')} className="text-left text-silver-text hover:text-pink-400 font-rfx text-xl py-2 border-b border-white/5 flex items-center gap-3"><ShoppingCart className="w-5 h-5"/> Premium Store</button>
+             <button onClick={() => handleNavClick('testimoni')} className="text-left text-silver-text hover:text-yellow-400 font-rfx text-xl py-2 flex items-center gap-3"><Star className="w-5 h-5"/> Testimonials</button>
         </div>
       )}
     </nav>
